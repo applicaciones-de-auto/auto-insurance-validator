@@ -12,7 +12,8 @@ package org.guanzon.auto.validator.insurance;
 public class ValidatorFactory {
     public enum TYPE{
         Policy_Proposal,
-        Policy_Application
+        Policy_Application,
+        Policy
     }
     
     public static ValidatorInterface make(ValidatorFactory.TYPE foType, Object foValue){
@@ -21,6 +22,8 @@ public class ValidatorFactory {
                 return new Validator_Insurance_Policy_Proposal(foValue);
             case Policy_Application:
                 return new Validator_Insurance_Policy_Application(foValue);
+            case Policy:
+                return new Validator_Insurance_Policy(foValue);
             default:
                 return null;
         }
