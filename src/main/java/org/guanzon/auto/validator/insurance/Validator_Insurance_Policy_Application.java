@@ -6,10 +6,20 @@
 package org.guanzon.auto.validator.insurance;
 
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.guanzon.appdriver.base.GRider;
+import org.guanzon.appdriver.base.MiscUtil;
+import org.guanzon.appdriver.base.SQLUtil;
+import org.guanzon.appdriver.constant.TransactionStatus;
+import org.guanzon.auto.model.insurance.Model_Insurance_Policy;
 import org.guanzon.auto.model.insurance.Model_Insurance_Policy_Application;
 
 /**
@@ -51,21 +61,153 @@ public class Validator_Insurance_Policy_Application implements ValidatorInterfac
                 return false;
             }
         }
-//        try {
-//        } catch (SQLException ex) {
-//            Logger.getLogger(Validator_Insurance_Policy_Proposal.class.getName()).log(Level.SEVERE, null, ex);
-//        }
+        if(poEntity.getEmployID()== null) {
+            psMessage = "Insurance Coordinator is not set.";
+            return false;
+        } else {
+            if (poEntity.getEmployID().isEmpty()){
+                psMessage = "Insurance Coordinator is not set.";
+                return false;
+            }
+        }
+        if(poEntity.getFinType()== null) {
+            psMessage = "Finance type is not set.";
+            return false;
+        } else {
+            if (poEntity.getFinType().isEmpty()){
+                psMessage = "Finance type is not set.";
+                return false;
+            }
+        }
+        
+        if (poEntity.getFinType().toLowerCase().equals("f") || poEntity.getFinType().toLowerCase().equals("po")){
+            if(poEntity.getBrBankID()== null) {
+                psMessage = "Bank is not set.";
+                return false;
+            } else {
+                if (poEntity.getBrBankID().isEmpty()){
+                    psMessage = "Bank is not set.";
+                    return false;
+                }
+            }
+        }
+        
+        String lsdate = "1900-01-01";
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            java.util.Date dateOld = null;
+            try {
+                // Parse the formatted date string into a Date object
+                dateOld = sdf.parse(lsdate);
+            } catch (ParseException e) {
+                System.err.println("Error parsing date: " + e.getMessage());
+            }
+            
+            java.util.Date date = (java.util.Date) poEntity.getValue("dValidFrm");
+            System.out.println(date);
+            
+            if(date == null){
+                psMessage = "Invalid valid from Date.";
+                return false;
+            } else {
+                if("1900-01-01".equals(xsDateShort(date))){
+                    psMessage = "Invalid valid from Date.";
+                    return false;
+                }
+            }
+            
+            date = (java.util.Date) poEntity.getValue("dValidTru");
+            if(date == null){
+                psMessage = "Invalid valid to Date.";
+                return false;
+            } else {
+                if("1900-01-01".equals(xsDateShort(date))){
+                    psMessage = "Invalid valid to Date.";
+                    return false;
+                }
+            }
+            
+            LocalDate ldteFrom = strToDate(xsDateShort((java.util.Date) poEntity.getValue("dDateFrom")));
+            LocalDate ldteThru =  strToDate(xsDateShort((java.util.Date) poEntity.getValue("dDateThru")));
+            Period age = Period.between(ldteFrom, ldteThru);
+            if(age.getDays() < 0){
+                psMessage = "Invalid policy application validity Date.";
+                return false;
+            }
+        
+        try {
+            
+            String lsID = "";
+            String lsDesc = "";
+            String lsSQL = "";
+            
+            //Cancellation
+            if (poEntity.getTranStat().equals(TransactionStatus.STATE_CANCELLED)){
+                if(poEntity.getPolicyNo()!= null){
+                    if(!poEntity.getPolicyNo().trim().isEmpty()){
+                        psMessage = "Policy Application already linked thru Policy No. " +poEntity.getPolicyNo()+ "\n\nCancellation Aborted.";
+                        return false;
+                    }
+                }
+                
+                Model_Insurance_Policy loEntity = new Model_Insurance_Policy(poGRider);
+                lsSQL =  MiscUtil.addCondition(loEntity.makeSelectSQL(), " cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
+                                                                        + " AND sReferNox = " + SQLUtil.toSQL(poEntity.getTransNo()) );
+                System.out.println("EXISTING POLICY CHECK: " + lsSQL);
+                ResultSet loRS = poGRider.executeQuery(lsSQL);
+                if (MiscUtil.RecordCount(loRS) > 0){
+                    while(loRS.next()){
+                        lsID = loRS.getString("sPolicyNo");
+                        lsDesc = xsDateShort(loRS.getDate("dTransact"));
+                    }
+
+                    MiscUtil.close(loRS);
+
+                    psMessage = "Found an existing policy."
+                                + "\n\n<Policy No:" + lsID + ">"
+                                + "\n<Policy Date:" + lsDesc + ">"
+                                + "\n\nCancellation aborted.";
+                    return false;
+                }
+                
+            }
+            
+            //Do not allow multiple application for insrance proposal
+            lsID = "";
+            lsDesc = "";
+            lsSQL = poEntity.makeSelectSQL();
+            lsSQL = MiscUtil.addCondition(lsSQL, " cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
+                                                    + " AND sTransNox <> " + SQLUtil.toSQL(poEntity.getTransNo()) 
+                                                    + " AND sReferNox = " + SQLUtil.toSQL(poEntity.getReferNo())   
+                                                    );
+            System.out.println("EXISTING POLICY APPLICATION CHECK: " + lsSQL);
+            ResultSet loRS = poGRider.executeQuery(lsSQL);
+            if (MiscUtil.RecordCount(loRS) > 0){
+                while(loRS.next()){
+                    lsID = loRS.getString("sTransNox");
+                    lsDesc = xsDateShort(loRS.getDate("dTransact"));
+                }
+
+                MiscUtil.close(loRS);
+
+                psMessage = "Found an existing policy application for policy proposal."
+                            + "\n\n<Application No:" + lsID + ">"
+                            + "\n<Application Date:" + lsDesc + ">"
+                            + "\n\nSave aborted.";
+                return false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(Validator_Insurance_Policy_Application.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
         return true;
     }
-
     
     @Override
     public String getMessage() {
         return psMessage;
     }
     
-    private static String xsDateShort(Date fdValue) {
+    private static String xsDateShort(java.util.Date fdValue) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String date = sdf.format(fdValue);
         return date;
@@ -85,7 +227,6 @@ public class Validator_Insurance_Policy_Application implements ValidatorInterfac
         LocalDate localDate = LocalDate.parse(val, date_formatter);
         return localDate;
     }
-    
     
     
 }

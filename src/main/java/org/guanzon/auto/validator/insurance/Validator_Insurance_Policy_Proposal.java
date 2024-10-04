@@ -18,6 +18,7 @@ import org.guanzon.appdriver.base.GRider;
 import org.guanzon.appdriver.base.MiscUtil;
 import org.guanzon.appdriver.base.SQLUtil;
 import org.guanzon.appdriver.constant.TransactionStatus;
+import org.guanzon.auto.model.insurance.Model_Insurance_Policy_Application;
 import org.guanzon.auto.model.insurance.Model_Insurance_Policy_Proposal;
 
 /**
@@ -120,26 +121,43 @@ public class Validator_Insurance_Policy_Proposal implements ValidatorInterface {
                 return false;
             }
         }
-        if(poEntity.getInsTypID().equals("1") || poEntity.getInsTypID().equals("2")) { //Comprehensive or Both
-            if(poEntity.getODTCRate()== null) {
+        
+        Double ldblODTCRate = poEntity.getODTCRate();
+        Double ldblAONCRate = poEntity.getAONCRate();
+        BigDecimal ldblODTCAmt = poEntity.getODTCAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblODTCPrem = poEntity.getODTCPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblAONCAmt = poEntity.getAONCAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblAONCPrem = poEntity.getAONCPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblBdyCAmt = poEntity.getBdyCAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblBdyCPrem = poEntity.getBdyCPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblPrDCAmt = poEntity.getPrDCAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblPrDCPrem = poEntity.getPrDCPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblPAcCAmt = poEntity.getPAcCAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblPAcCPrem = poEntity.getPAcCPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblTPLAmt = poEntity.getTPLAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblTPLPrem = poEntity.getTPLPrem().setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal ldblTotalAmt = poEntity.getTotalAmt().setScale(2, BigDecimal.ROUND_HALF_UP);
+        
+        if(poEntity.getInsTypID().equals("c") || poEntity.getInsTypID().equals("b")) { //Comprehensive or Both
+            if(ldblODTCRate == null) {
                 psMessage = "ODT Rate is not set.";
                 return false;
             } else {
-                if (poEntity.getODTCRate() <= 0.00){
+                if (ldblODTCRate <= 0.00){
                     psMessage = "Invalid ODT Rate.";
                     return false;
                 }
             }
-            if (poEntity.getODTCAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getODTCAmt() == null){
+            if (ldblODTCAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblODTCAmt == null){
                 psMessage = "Invalid ODT coverage amount.";
                 return false;
             }
-            if (poEntity.getODTCPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getODTCPrem() == null){
+            if (ldblODTCPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblODTCPrem == null){
                 psMessage = "Invalid ODT premium amount.";
                 return false;
             }
         }
-        if (poEntity.getAONCAmt().compareTo(new BigDecimal("0.00")) > 0){
+        if (ldblAONCAmt.compareTo(new BigDecimal("0.00")) > 0){
             if(poEntity.getAONCPayM()== null) {
                 psMessage = "AON Payment mode is not set.";
                 return false;
@@ -151,16 +169,16 @@ public class Validator_Insurance_Policy_Proposal implements ValidatorInterface {
             }
             
             if(poEntity.getAONCPayM().equals("cha")){
-                if(poEntity.getAONCRate()== null) {
+                if(ldblAONCRate== null) {
                     psMessage = "AON Rate is not set.";
                     return false;
                 } else {
-                    if (poEntity.getAONCRate() <= 0.00){
+                    if (ldblAONCRate <= 0.00){
                         psMessage = "Invalid AON Rate.";
                         return false;
                     }
                 }
-                if (poEntity.getAONCPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getAONCPrem() == null){
+                if (ldblAONCPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblAONCPrem == null){
                     psMessage = "Invalid AON premium amount.";
                     return false;
                 }
@@ -168,70 +186,70 @@ public class Validator_Insurance_Policy_Proposal implements ValidatorInterface {
         }
         
         /*BODILY INJURY*/
-        if (poEntity.getBdyCAmt().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getBdyCPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getBdyCPrem() == null){
+        if (ldblBdyCAmt.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblBdyCPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblBdyCPrem == null){
                 psMessage = "Invalid BI premium amount.";
                 return false;
             }
         }
-        if (poEntity.getBdyCPrem().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getBdyCAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getBdyCAmt() == null){
+        if (ldblBdyCPrem.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblBdyCAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblBdyCAmt == null){
                 psMessage = "Invalid BI coverage amount.";
                 return false;
             }
         }
         /*PROPERTY DAMAGE*/
-        if (poEntity.getPrDCAmt().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getPrDCPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getPrDCPrem() == null){
+        if (ldblPrDCAmt.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblPrDCPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblPrDCPrem == null){
                 psMessage = "Invalid PD premium amount.";
                 return false;
             }
         }
-        if (poEntity.getPrDCPrem().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getPrDCAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getPrDCAmt() == null){
+        if (ldblPrDCPrem.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblPrDCAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblPrDCAmt == null){
                 psMessage = "Invalid PD coverage amount.";
                 return false;
             }
         }
         /*PASSENGER ACCIDENT*/
-        if (poEntity.getPAcCAmt().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getPAcCPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getPAcCPrem() == null){
+        if (ldblPAcCAmt.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblPAcCPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblPAcCPrem == null){
                 psMessage = "Invalid PA premium amount.";
                 return false;
             }
         }
-        if (poEntity.getPAcCPrem().compareTo(new BigDecimal("0.00")) > 0){
-            if (poEntity.getPAcCAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getPAcCAmt() == null){
+        if (ldblPAcCPrem.compareTo(new BigDecimal("0.00")) > 0){
+            if (ldblPAcCAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblPAcCAmt == null){
                 psMessage = "Invalid PA coverage amount.";
                 return false;
             }
         }
         
         //TPL or Both
-        if(poEntity.getInsTypID().equals("0") || poEntity.getInsTypID().equals("2")) { 
-            if (poEntity.getTPLPrem().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getTPLPrem() == null){
+        if(poEntity.getInsTypID().equals("y") || poEntity.getInsTypID().equals("b")) { 
+            if (ldblTPLPrem.compareTo(new BigDecimal("0.00")) <= 0 || ldblTPLPrem == null){
                 psMessage = "Invalid TPL premium amount.";
                 return false;
             }
-            if (poEntity.getTPLAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getTPLAmt() == null){
+            if (ldblTPLAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblTPLAmt == null){
                 psMessage = "Invalid TPL coverage amount.";
                 return false;
             }
         }
         
-        if(poEntity.getInsTypID().equals("2")){ //Comprehensive
-            if (poEntity.getTPLPrem().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getTPLAmt().compareTo(new BigDecimal("0.00")) > 0){
+        if(poEntity.getInsTypID().equals("c")){ //Comprehensive
+            if (ldblTPLPrem.compareTo(new BigDecimal("0.00")) > 0 || ldblTPLAmt.compareTo(new BigDecimal("0.00")) > 0){
                 psMessage = "Please choose BOTH as POLICY TYPE if you want to include TPL.";
                 return false;
             }
         }
         
-        if(poEntity.getInsTypID().equals("0")){ //TPL
-            if (poEntity.getAONCAmt().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getAONCPrem().compareTo(new BigDecimal("0.00")) > 0
-                || poEntity.getBdyCAmt().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getBdyCPrem().compareTo(new BigDecimal("0.00")) > 0 
-                || poEntity.getODTCAmt().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getODTCPrem().compareTo(new BigDecimal("0.00")) > 0   
-                || poEntity.getPAcCAmt().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getPAcCPrem().compareTo(new BigDecimal("0.00")) > 0    
-                || poEntity.getPrDCAmt().compareTo(new BigDecimal("0.00")) > 0 || poEntity.getPrDCPrem().compareTo(new BigDecimal("0.00")) > 0      
+        if(poEntity.getInsTypID().equals("y")){ //TPL
+            if (ldblAONCAmt.compareTo(new BigDecimal("0.00")) > 0 || ldblAONCPrem.compareTo(new BigDecimal("0.00")) > 0
+                || ldblBdyCAmt.compareTo(new BigDecimal("0.00")) > 0 || ldblBdyCPrem.compareTo(new BigDecimal("0.00")) > 0 
+                || ldblODTCAmt.compareTo(new BigDecimal("0.00")) > 0 || ldblODTCPrem.compareTo(new BigDecimal("0.00")) > 0   
+                || ldblPAcCAmt.compareTo(new BigDecimal("0.00")) > 0 || ldblPAcCPrem.compareTo(new BigDecimal("0.00")) > 0    
+                || ldblPrDCAmt.compareTo(new BigDecimal("0.00")) > 0 || ldblPrDCPrem.compareTo(new BigDecimal("0.00")) > 0      
                 ){
                 psMessage = "You chose TPL only, please choose other policy type to include other coverages.";
                 return false;
@@ -257,34 +275,74 @@ public class Validator_Insurance_Policy_Proposal implements ValidatorInterface {
             }
         }
         
-        if (poEntity.getTotalAmt().compareTo(new BigDecimal("0.00")) <= 0 || poEntity.getTotalAmt() == null){
+        if (ldblTotalAmt.compareTo(new BigDecimal("0.00")) <= 0 || ldblTotalAmt == null){
             psMessage = "Invalid Total Amount.";
             return false;
         }
+        
         try {
-            // Do not allow multiple proposal per vehicle with the same insurance company
-            // Shall alow multiple proposals per vehicle, per policy type as long as rates and or coverages/premiums  or insurance company are not alike
+            
             String lsID = "";
             String lsDesc = "";
-            String lsSQL = poEntity.makeSelectSQL();
+            String lsSQL = "";
+            
+            //Cancellation
+            if (poEntity.getTranStat().equals(TransactionStatus.STATE_CANCELLED)){
+                if(poEntity.getInsAppNo() != null){
+                    if(!poEntity.getInsAppNo().trim().isEmpty()){
+                        psMessage = "Policy Proposal already linked thru Application No. " +poEntity.getInsAppNo()+ "\n\nCancellation Aborted.";
+                        return false;
+                    }
+                }
+                
+                Model_Insurance_Policy_Application loEntity = new Model_Insurance_Policy_Application(poGRider);
+                lsSQL =  MiscUtil.addCondition(loEntity.makeSelectSQL(), " cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
+                                                                        + " AND sReferNox = " + SQLUtil.toSQL(poEntity.getTransNo()) );
+                System.out.println("EXISTING POLICY APPLICATION CHECK: " + lsSQL);
+                ResultSet loRS = poGRider.executeQuery(lsSQL);
+                if (MiscUtil.RecordCount(loRS) > 0){
+                    while(loRS.next()){
+                        lsID = loRS.getString("sReferNox");
+                        lsDesc = xsDateShort(loRS.getDate("dTransact"));
+                    }
+
+                    MiscUtil.close(loRS);
+
+                    psMessage = "Found an existing policy application."
+                                + "\n\n<Application No:" + lsID + ">"
+                                + "\n<Application Date:" + lsDesc + ">"
+                                + "\n\nCancellation aborted.";
+                    return false;
+                }
+                
+            }
+
+            // Do not allow multiple proposal per vehicle with the same insurance company
+            // Shall alow multiple proposals per vehicle, per policy type as long as rates and or coverages/premiums  or insurance company are not alike
+            lsID = "";
+            lsDesc = "";
+            lsSQL = poEntity.makeSelectSQL();
             lsSQL = MiscUtil.addCondition(lsSQL, " cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
                                                     + " AND sTransNox <> " + SQLUtil.toSQL(poEntity.getTransNo()) 
-                                                    + " AND (nODTCRate = " + SQLUtil.toSQL(poEntity.getODTCRate()) 
-                                                    + " OR nAONCRate = " + SQLUtil.toSQL(poEntity.getAONCRate()) 
-                                                    + " OR nODTCAmtx = " + SQLUtil.toSQL(poEntity.getODTCAmt()) 
-                                                    + " OR nODTCPrem = " + SQLUtil.toSQL(poEntity.getODTCPrem()) 
-                                                    + " OR nAONCAmtx = " + SQLUtil.toSQL(poEntity.getAONCAmt()) 
-                                                    + " OR nAONCPrem = " + SQLUtil.toSQL(poEntity.getAONCPrem()) 
-                                                    + " OR nBdyCAmtx = " + SQLUtil.toSQL(poEntity.getBdyCAmt()) 
-                                                    + " OR nBdyCPrem = " + SQLUtil.toSQL(poEntity.getBdyCPrem()) 
-                                                    + " OR nPrDCAmtx = " + SQLUtil.toSQL(poEntity.getPrDCAmt()) 
-                                                    + " OR nPrDCPrem = " + SQLUtil.toSQL(poEntity.getPrDCPrem()) 
-                                                    + " OR nPAcCAmtx = " + SQLUtil.toSQL(poEntity.getPAcCAmt()) 
-                                                    + " OR nPAcCPrem = " + SQLUtil.toSQL(poEntity.getPAcCPrem()) 
-                                                    + " OR nTPLAmtxx = " + SQLUtil.toSQL(poEntity.getTPLAmt()) 
-                                                    + " OR nTPLPremx = " + SQLUtil.toSQL(poEntity.getTPLPrem()) 
+                                                    + " AND (nODTCRate = " + SQLUtil.toSQL(ldblODTCRate) 
+                                                    + " OR nAONCRate = " + SQLUtil.toSQL(ldblAONCRate) 
+                                                    + " OR nODTCAmtx = " + SQLUtil.toSQL(ldblODTCAmt) 
+                                                    + " OR nODTCPrem = " + SQLUtil.toSQL(ldblODTCPrem) 
+                                                    + " OR nAONCAmtx = " + SQLUtil.toSQL(ldblAONCAmt) 
+                                                    + " OR nAONCPrem = " + SQLUtil.toSQL(ldblAONCPrem) 
+                                                    + " OR nBdyCAmtx = " + SQLUtil.toSQL(ldblBdyCAmt) 
+                                                    + " OR nBdyCPrem = " + SQLUtil.toSQL(ldblBdyCPrem) 
+                                                    + " OR nPrDCAmtx = " + SQLUtil.toSQL(ldblPrDCAmt) 
+                                                    + " OR nPrDCPrem = " + SQLUtil.toSQL(ldblPrDCPrem) 
+                                                    + " OR nPAcCAmtx = " + SQLUtil.toSQL(ldblPAcCAmt) 
+                                                    + " OR nPAcCPrem = " + SQLUtil.toSQL(ldblPAcCPrem) 
+                                                    + " OR nTPLAmtxx = " + SQLUtil.toSQL(ldblTPLAmt) 
+                                                    + " OR nTPLPremx = " + SQLUtil.toSQL(ldblTPLPrem) 
                                                     + " OR sBrInsIDx = " + SQLUtil.toSQL(poEntity.getBrInsID()) 
-                                                    + " ) AND sSerialID = " + SQLUtil.toSQL(poEntity.getSerialID()) 
+                                                    + " ) AND sInsTypID = " + SQLUtil.toSQL(poEntity.getInsTypID()) 
+                                                    + " AND cIsNewxxx = " + SQLUtil.toSQL(poEntity.getIsNew()) 
+                                                    + " AND sSerialID = " + SQLUtil.toSQL(poEntity.getSerialID()) 
+                    
                                             );
             System.out.println("EXISTING POLICY PROPOSAL CHECK: " + lsSQL);
             ResultSet loRS = poGRider.executeQuery(lsSQL);
