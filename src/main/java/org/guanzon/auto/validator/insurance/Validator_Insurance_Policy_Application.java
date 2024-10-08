@@ -93,46 +93,46 @@ public class Validator_Insurance_Policy_Application implements ValidatorInterfac
         }
         
         String lsdate = "1900-01-01";
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            java.util.Date dateOld = null;
-            try {
-                // Parse the formatted date string into a Date object
-                dateOld = sdf.parse(lsdate);
-            } catch (ParseException e) {
-                System.err.println("Error parsing date: " + e.getMessage());
-            }
-            
-            java.util.Date date = (java.util.Date) poEntity.getValue("dValidFrm");
-            System.out.println(date);
-            
-            if(date == null){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        java.util.Date dateOld = null;
+        try {
+            // Parse the formatted date string into a Date object
+            dateOld = sdf.parse(lsdate);
+        } catch (ParseException e) {
+            System.err.println("Error parsing date: " + e.getMessage());
+        }
+
+        java.util.Date date = (java.util.Date) poEntity.getValue("dValidFrm");
+        System.out.println(date);
+
+        if(date == null){
+            psMessage = "Invalid valid from Date.";
+            return false;
+        } else {
+            if("1900-01-01".equals(xsDateShort(date))){
                 psMessage = "Invalid valid from Date.";
                 return false;
-            } else {
-                if("1900-01-01".equals(xsDateShort(date))){
-                    psMessage = "Invalid valid from Date.";
-                    return false;
-                }
             }
-            
-            date = (java.util.Date) poEntity.getValue("dValidTru");
-            if(date == null){
+        }
+
+        date = (java.util.Date) poEntity.getValue("dValidTru");
+        if(date == null){
+            psMessage = "Invalid valid to Date.";
+            return false;
+        } else {
+            if("1900-01-01".equals(xsDateShort(date))){
                 psMessage = "Invalid valid to Date.";
                 return false;
-            } else {
-                if("1900-01-01".equals(xsDateShort(date))){
-                    psMessage = "Invalid valid to Date.";
-                    return false;
-                }
             }
-            
-            LocalDate ldteFrom = strToDate(xsDateShort((java.util.Date) poEntity.getValue("dDateFrom")));
-            LocalDate ldteThru =  strToDate(xsDateShort((java.util.Date) poEntity.getValue("dDateThru")));
-            Period age = Period.between(ldteFrom, ldteThru);
-            if(age.getDays() < 0){
-                psMessage = "Invalid policy application validity Date.";
-                return false;
-            }
+        }
+
+        LocalDate ldteFrom = strToDate(xsDateShort((java.util.Date) poEntity.getValue("dValidFrm")));
+        LocalDate ldteThru =  strToDate(xsDateShort((java.util.Date) poEntity.getValue("dValidTru")));
+        Period age = Period.between(ldteFrom, ldteThru);
+        if(age.getDays() < 0){
+            psMessage = "Invalid policy application validity Date.";
+            return false;
+        }
         
         try {
             
