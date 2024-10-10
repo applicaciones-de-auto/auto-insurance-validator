@@ -80,7 +80,8 @@ public class Validator_Insurance_Policy_Application implements ValidatorInterfac
             }
         }
         
-        if (poEntity.getFinType().toLowerCase().equals("f") || poEntity.getFinType().toLowerCase().equals("po")){
+//        if (poEntity.getFinType().toLowerCase().equals("f") || poEntity.getFinType().toLowerCase().equals("po")){
+        if (!poEntity.getFinType().toLowerCase().equals("0")){
             if(poEntity.getBrBankID()== null) {
                 psMessage = "Bank is not set.";
                 return false;

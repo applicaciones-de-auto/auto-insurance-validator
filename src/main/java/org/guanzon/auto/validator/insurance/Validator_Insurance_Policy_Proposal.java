@@ -104,20 +104,11 @@ public class Validator_Insurance_Policy_Proposal implements ValidatorInterface {
             }
         }
         if(poEntity.getIsNew()== null) {
-            psMessage = "Proposal Type is not set.";
+            psMessage = "Policy Type is not set.";
             return false;
         } else {
             if (poEntity.getIsNew().isEmpty()){
-                psMessage = "Insurance Type is not set.";
-                return false;
-            }
-        }
-        if(poEntity.getIsNew()== null) {
-            psMessage = "Proposal Type is not set.";
-            return false;
-        } else {
-            if (poEntity.getIsNew().isEmpty()){
-                psMessage = "Insurance Type is not set.";
+                psMessage = "Policy Type is not set.";
                 return false;
             }
         }
