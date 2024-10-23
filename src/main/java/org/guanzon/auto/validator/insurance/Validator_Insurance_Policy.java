@@ -346,30 +346,6 @@ public class Validator_Insurance_Policy implements ValidatorInterface {
                 return false;
             }
             
-            //check for same existing policy number but with different unit, do not allow if found any	
-            lsID = "";
-            lsDesc = "";
-            lsSQL = poEntity.getSQL();
-            lsSQL = MiscUtil.addCondition(lsSQL, " a.cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
-                                                    + " AND a.sPolicyNo = " + SQLUtil.toSQL(poEntity.getPolicyNo()) 
-                                                    + " AND c.sSerialID <> " + SQLUtil.toSQL(poEntity.getSerialID())   
-                                                    );
-            System.out.println("EXISTING POLICY WITH DIFFERENT VEHICLE CHECK: " + lsSQL);
-            loRS = poGRider.executeQuery(lsSQL);
-            if (MiscUtil.RecordCount(loRS) > 0){
-                while(loRS.next()){
-                    lsID = loRS.getString("sPolicyNo");
-                    lsDesc = xsDateShort(loRS.getDate("dTransact"));
-                }
-
-                MiscUtil.close(loRS);
-
-                psMessage = "Found exisiting policy number."
-                            + "\n\n<Policy No:" + lsID + ">"
-                            + "\n<Policy Date:" + lsDesc + ">"
-                            + "\n\nSave aborted.";
-                return false;
-            }
             //check for same existing policy number but with different unit, do not allow if found any
             lsID = "";
             lsDesc = "";
@@ -394,6 +370,49 @@ public class Validator_Insurance_Policy implements ValidatorInterface {
                             + "\n<Policy Date:" + lsDesc + ">"
                             + "\n\nSave aborted.";
                 return false;
+            }
+            
+            if(poEntity.getTranStat().equals(TransactionStatus.STATE_CANCELLED)){
+                //Check when linked to accounting forms
+                //PAYMENT
+                //check if linked with CC
+                //check if linked with Receipt
+                lsID = "";
+                lsDesc = "";
+                String lsType = "";
+                lsSQL = " SELECT "                                             
+                        + "   a.sTransNox "                                     
+                        + " , a.sReferNox "                                     
+                        + " , a.sSourceCD "                                     
+                        + " , a.sSourceNo "                                     
+                        + " , a.sTranType "                                     
+                        + " , b.sReferNox AS sSINoxxxx "                        
+                        + " , b.dTransact "                      
+                        + " , b.cTranStat  "                                  
+                        + " FROM si_master_source a "                           
+                        + " LEFT JOIN si_master b ON b.sTransNox = a.sTransNox ";
+                lsSQL = MiscUtil.addCondition(lsSQL, " b.cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
+                                                    + " AND a.sReferNox = " + SQLUtil.toSQL(poEntity.getTransNo()) 
+                                                    );
+                System.out.println("EXISTING PAYMENT CHECK: " + lsSQL);
+                loRS = poGRider.executeQuery(lsSQL);
+
+                if (MiscUtil.RecordCount(loRS) > 0){
+                    while(loRS.next()){
+                        lsID = loRS.getString("sSINoxxxx");
+                        lsType = loRS.getString("sTranType"); //TODO
+                        lsDesc = xsDateShort(loRS.getDate("dTransact"));
+                    }
+
+                    MiscUtil.close(loRS);
+
+                    psMessage = "Found an existing payment."
+                                + "\n\n<Invoice No:" + lsID + ">"
+                                + "\n<Invoice Date:" + lsDesc + ">"
+                                + "\n<Invoice Type:" + lsType + ">"
+                                + "\n\nCancellation aborted.";
+                    return false;
+                }
             }
             
             //check for same existing policy number with same unit, allow but date of validity should be lesser than the new policy user is trying to input; prompt user if found one
