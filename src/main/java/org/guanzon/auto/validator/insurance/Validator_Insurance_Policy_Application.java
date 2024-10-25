@@ -170,6 +170,46 @@ public class Validator_Insurance_Policy_Application implements ValidatorInterfac
                     return false;
                 }
                 
+                //Check when linked to accounting forms
+                //PAYMENT
+                //check if linked with CC
+                //check if linked with Receipt
+                lsID = "";
+                lsDesc = "";
+                String lsType = "";
+                lsSQL = " SELECT "                                             
+                        + "   a.sTransNox "                                     
+                        + " , a.sReferNox "                                     
+                        + " , a.sSourceCD "                                     
+                        + " , a.sSourceNo "                                     
+                        + " , a.sTranType "                                     
+                        + " , b.sReferNox AS sSINoxxxx "                        
+                        + " , b.dTransact "                      
+                        + " , b.cTranStat  "                                  
+                        + " FROM si_master_source a "                           
+                        + " LEFT JOIN si_master b ON b.sTransNox = a.sTransNox ";
+                lsSQL = MiscUtil.addCondition(lsSQL, " b.cTranStat <> " + SQLUtil.toSQL(TransactionStatus.STATE_CANCELLED) 
+                                                    + " AND a.sReferNox = " + SQLUtil.toSQL(poEntity.getTransNo()) 
+                                                    );
+                System.out.println("EXISTING PAYMENT CHECK: " + lsSQL);
+                loRS = poGRider.executeQuery(lsSQL);
+
+                if (MiscUtil.RecordCount(loRS) > 0){
+                    while(loRS.next()){
+                        lsID = loRS.getString("sSINoxxxx");
+                        lsType = loRS.getString("sTranType"); //TODO
+                        lsDesc = xsDateShort(loRS.getDate("dTransact"));
+                    }
+
+                    MiscUtil.close(loRS);
+
+                    psMessage = "Found an existing payment."
+                                + "\n\n<Invoice No:" + lsID + ">"
+                                + "\n<Invoice Date:" + lsDesc + ">"
+                                + "\n<Invoice Type:" + lsType + ">"
+                                + "\n\nCancellation aborted.";
+                    return false;
+                }
             }
             
             //Do not allow multiple application for insrance proposal
